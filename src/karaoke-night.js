@@ -45,6 +45,9 @@ class KaraokeNight extends LitElement {
           --missing-data: red;
           --missing-link: yellow;
         }
+        .input-missing {
+            outline: 1px solid red;
+        }
 
         header {
           margin: auto;
@@ -57,13 +60,21 @@ class KaraokeNight extends LitElement {
 
         ];
     }
-
+    evalInput(e) {
+      let name = e.target.getAttribute('name');
+      if (this[name] == null || this[name] == '') {
+        e.target.classList.add('input-missing');
+      }
+      else {
+        e.target.classList.remove('input-missing');
+      }
+    }
     render() {
         return html`
       <header>
         <h2>${this.entry_header}</h2>
         <div>
-          <div><input name="singer" value="${this.singer !== null ? this.singer : ''}" id="singer" type="text" size="30" placeholder="Enter your name here"></div>
+          <div><input name="singer" @mouseout=${this.evalInput} @focusout=${this.evalInput} value="${this.singer !== null ? this.singer : ''}" id="singer" type="text" size="30" placeholder="Enter your name here"></div>
           <div><input name="song" value="${this.song !== null ? this.song : ''}" id="song" type="text" size="30" placeholder="Enter the song name here"></div>
           <div><input name="artist" value="${this.artist !== null ? this.artist : ''}" id="artist" type="text" size="30" placeholder="Enter the artist name here"></div>
           <div>
