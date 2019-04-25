@@ -41,9 +41,6 @@ class KaraokeNight extends LitElement {
           justify-content: center;
           font-size: calc(10px + 2vmin);
           color: #1a2b42;
-          
-          --missing-data: red;
-          --missing-link: yellow;
         }
         .input-missing {
             outline: 1px solid red;
@@ -62,11 +59,13 @@ class KaraokeNight extends LitElement {
     }
     evalInput(e) {
       let name = e.target.getAttribute('name');
-      if (this[name] == null || this[name] == '') {
+      if (this.shadowRoot.activeElement && this.shadowRoot.activeElement.value == '') {
         e.target.classList.add('input-missing');
+        this.shadowRoot.getElementById('button').classList.add('input-missing');
       }
       else {
         e.target.classList.remove('input-missing');
+        // Check if button can be enabled.
       }
     }
     render() {
@@ -81,7 +80,12 @@ class KaraokeNight extends LitElement {
             <div>Have a specific video to link?</div>
             <div><input name="link" value="${this.link !== null ? this.link : ''}" id="link" type="text" size="30" placeholder="Copy and paste the url here"></div>
           </div>
-          <div><karaoke-button .singer=${this.singer} .song=${this.song} .artist=${this.artist} .link=${this.link} @click=${this.handleClick}>Add to list</karaoke-button></div>  
+          <div>
+          ${this.validateForm ?
+              html`<karaoke-button id="button" .singer=${this.singer} .song=${this.song} .artist=${this.artist} .link=${this.link} @click=${this.handleClick}>Add to list</karaoke-button>` :
+              html`<karaoke-button id="button" disabled .singer=${this.singer} .song=${this.song} .artist=${this.artist} .link=${this.link} @click=${this.handleClick}>Add to list</karaoke-button>`
+              }
+          </div>  
         </div>
         <div><label>Provide your name, the name of the song, and the name the song's artist here.</label></div>
         
@@ -89,12 +93,26 @@ class KaraokeNight extends LitElement {
       <h2>${this.list_header}</h2>
       <div class="append-list">
         ${this.entries.map(entry => html`
-            <karaoke-item .singer=${entry.singer} .song=${entry.song} .artist=${entry.artist} ></karaoke-item>
+            <karaoke-item  .singer=${entry.singer} .song=${entry.song} .artist=${entry.artist} ></karaoke-item>
         `)}
       </div>
     `;
     }
 
+    /** Return False if invalid, True if valid. */
+    validateForm() {
+
+        const singer = this.shadowRoot.getElementById('singer');
+        const song = this.shadowRoot.getElementById('song');
+        const artist = this.shadowRoot.getElementById('artist');
+        const link = this.shadowRoot.getElementById('link');
+
+        if(singer && song && artist) {
+            return (singer.value != '' && song.value != '' && artist.value != '');
+        };
+
+        return false;
+    }
     handleClick() {
         const newSinger = this.shadowRoot.getElementById('singer').value;
         const newSong = this.shadowRoot.getElementById('song').value;
@@ -216,7 +234,7 @@ class ValidatingButton extends LitElement {
             song: {type: String},
             artist: {type: String},
             link: {type: String},
-
+            disabled: {type: Boolean},
         };
     }
 
@@ -241,15 +259,10 @@ class ValidatingButton extends LitElement {
     }
 
     render() {
-        if (this.missingData) {
-            return html`
-      <button class="${'error'}">${this.title}</button>
-    `;
-        }
-
-        return html`
-      <button class="${this.missingLink ? 'missingLink' : null}">${this.title}</button>
-    `;
+      if (this.disabled) {
+        return html`<button disabled>${this.title}</button>`;
+      }
+      return html`<button>${this.title}</button>`;
 
     }
 
